@@ -10,3 +10,6 @@ Figure 4 Longitudinal Profiling of Vaccine-induced Omics Features and Pathways A
 Figure 5. Co-Abundance Networks of Omics Features between Longer and Shorter Durability.
 
 Figure 6. Multi-omics-constrained mathematical modeling for immune responses. 
+
+Additional information and materials are available upon contacting the corresponding author, Prof. Chris Ka-Pun Mok (kapunmok@cuhk.edu.hk).
+
