@@ -1,0 +1,264 @@
+---
+title: "Upsetplot"
+author: "Shilin"
+date: "2025-06-06"
+output: html_document
+---
+
+```{r}
+library(UpSetR)
+library(openxlsx)
+
+df_bnt_immunogenecity_low<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_0_immunogenecity.xlsx") %>%
+  mutate(link=paste0(Source,"_",	target))
+
+df_bnt_immunogenecity_high<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_1_immunogenecity.xlsx")%>%
+  mutate(link=paste0(Source,"_",	target))
+
+df_snv_immunogenecity_low<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_0_immunogenecity.xlsx")%>%
+  mutate(link=paste0(Source,"_",	target))
+
+df_snv_immunogenecity_high<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_1_immunogenecity.xlsx")%>%
+  mutate(link=paste0(Source,"_",	target))
+
+df_bnt_durability_high<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_0_durability.xlsx")%>%
+  mutate(link=paste0(Source,"_",	target))
+
+df_bnt_durability_low<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_1_durability.xlsx")%>%
+  mutate(link=paste0(Source,"_",	target))
+
+df_snv_durability_high<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_0_durability.xlsx")%>%
+  mutate(link=paste0(Source,"_",	target))
+
+df_snv_durability_low<-
+  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_1_durability.xlsx")%>%
+  mutate(link=paste0(Source,"_",	target))
+
+
+```
+#Visulization & Immunogenecity
+```{r}
+
+df_immunogenecity_bnt<-
+  list('Lower responders: Lipidomics & Metabolomics'=df_bnt_immunogenecity_low %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+          'Higher responders: Lipidomics & Metabolomics'=df_bnt_immunogenecity_high %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+       
+       'Lower responders: Lipidomics & Cytokines'=df_bnt_immunogenecity_low %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       'Higher responders: Lipidomics & Cytokines'=df_bnt_immunogenecity_high %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       
+       'Lower responders: Lipidomics & Transcriptomics'=df_bnt_immunogenecity_low %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+        'Higher responders: Lipidomics & Transcriptomics'=df_bnt_immunogenecity_high %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+       
+       'Lower responders: Metabolomics & Cytokines'=df_bnt_immunogenecity_low %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       'Higher responders: Metabolomics & Cytokines'=df_bnt_immunogenecity_high %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       
+       'Lower responders: Metabolomics & Transcriptomics'=df_bnt_immunogenecity_low %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+        'Higher responders: Metabolomics & Transcriptomics'=df_bnt_immunogenecity_high %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+       
+      'Lower responders: Transcriptomics & Cytokines'=df_bnt_immunogenecity_low %>%
+        filter(Group=="Others-Cytokines") %>% pull(link),
+  'Higher responders: Transcriptomics & Cytokines'=df_bnt_immunogenecity_high %>%
+        filter(Group=="Others-Cytokines") %>% pull(link)
+       )
+
+pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/bnt.immunogenecity.pdf",height=4,width=5)
+
+upset(fromList(df_immunogenecity_bnt),nsets=12,keep.order = T,order.by = "freq",
+            queries = list(
+             list(query = intersects, 
+                   params  = list("Lower responders: Lipidomics & Metabolomics",
+                            "Higher responders: Lipidomics & Metabolomics"),
+             color = "orangered",active = T),
+             list(query = intersects, 
+                   params  = list('Lower responders: Lipidomics & Cytokines',
+                            'Higher responders: Lipidomics & Cytokines'),
+             color = "orangered",active = T),
+             list(query = intersects, 
+                   params  = list('Lower responders: Lipidomics & Transcriptomics',
+                            'Higher responders: Lipidomics & Transcriptomics'),
+             color = "orangered",active = T)
+             
+      )
+    )
+
+dev.off()
+                      
+```
+#SNV immunogenecity
+```{r}
+df_immunogenecity_snv<-
+  list('Lower responders: Lipidomics & Metabolomics'=df_snv_immunogenecity_low %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+       'Higher responders: Lipidomics & Metabolomics'=df_snv_immunogenecity_high %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+       
+       'Lower responders: Lipidomics & Cytokines'=df_snv_immunogenecity_low %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       'Higher responders: Lipidomics & Cytokines'=df_snv_immunogenecity_high %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       
+       'Lower responders: Lipidomics & Transcriptomics'=df_snv_immunogenecity_low %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+       'Higher responders: Lipidomics & Transcriptomics'=df_snv_immunogenecity_high %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+       
+       'Lower responders: Metabolomics & Cytokines'=df_snv_immunogenecity_low %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       'Higher responders: Metabolomics & Cytokines'=df_snv_immunogenecity_high %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       
+       'Lower responders: Metabolomics & Transcriptomics'=df_snv_immunogenecity_low %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+       'Higher responders: Metabolomics & Transcriptomics'=df_snv_immunogenecity_high %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+       
+       'Lower responders: Transcriptomics & Cytokines'=df_snv_immunogenecity_low %>%
+         filter(Group=="Others-Cytokines") %>% pull(link),
+       'Higher responders: Transcriptomics & Cytokines'=df_snv_immunogenecity_high %>%
+         filter(Group=="Others-Cytokines") %>% pull(link)
+  )
+
+pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/snv.dimmunogenecity.pdf",height=4,width=5)
+upset(fromList(df_immunogenecity_snv),nsets=12,keep.order = T,order.by = "freq",
+      queries = list(
+        list(query = intersects, 
+             params  = list("Lower responders: Lipidomics & Metabolomics",
+                            "Higher responders: Lipidomics & Metabolomics"),
+             color = "orangered",active = T),
+        list(query = intersects, 
+             params  = list('Lower responders: Lipidomics & Cytokines',
+                            'Higher responders: Lipidomics & Cytokines'),
+             color = "orangered",active = T) ,
+        list(query = intersects,
+             params  = list('Lower responders: Metabolomics & Cytokines',
+                            'Higher responders: Metabolomics & Cytokines'),
+             color = "orangered",active = T)
+        
+      )
+)
+dev.off()
+```
+#Visulization & durability
+```{r}
+
+df_durability_bnt<-
+  list('Shorter durability: Lipidomics & Metabolomics'=df_bnt_durability_low %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+       'Longer durability: Lipidomics & Metabolomics'=df_bnt_durability_high %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+       
+       'Shorter durability: Lipidomics & Cytokines'=df_bnt_durability_low %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       'Longer durability: Lipidomics & Cytokines'=df_bnt_durability_high %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       
+       'Shorter durability: Lipidomics & Transcriptomics'=df_bnt_durability_low %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+       'Longer durability: Lipidomics & Transcriptomics'=df_bnt_durability_high %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+       
+       'Shorter durability: Metabolomics & Cytokines'=df_bnt_durability_low %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       'Longer durability: Metabolomics & Cytokines'=df_bnt_durability_high %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       
+       'Shorter durability: Metabolomics & Transcriptomics'=df_bnt_durability_low %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+       'Longer durability: Metabolomics & Transcriptomics'=df_bnt_durability_high %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+       
+       'Shorter durability: Transcriptomics & Cytokines'=df_bnt_durability_low %>%
+         filter(Group=="Others-Cytokines") %>% pull(link),
+       'Longer durability: Transcriptomics & Cytokines'=df_bnt_durability_high %>%
+         filter(Group=="Others-Cytokines") %>% pull(link)
+  )
+
+pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/bnt.durability.pdf",height=4,width=5)
+
+upset(fromList(df_durability_bnt),nsets=12,keep.order = T,order.by = "freq",
+      queries = list(
+        list(query = intersects, 
+             params  = list("Shorter durability: Lipidomics & Metabolomics",
+                            "Longer durability: Lipidomics & Metabolomics"),
+             color = "orangered",active = T),
+        list(query = intersects, 
+             params  = list('Shorter durability: Metabolomics & Cytokines',
+                            'Longer durability: Metabolomics & Cytokines'),
+             color = "orangered",active = T)
+      )
+)
+dev.off()
+
+```
+#SNV durability
+```{r}
+df_durability_snv<-
+  list('Shorter durability: Lipidomics & Metabolomics'=df_snv_durability_low %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+       'Longer durability: Lipidomics & Metabolomics'=df_snv_durability_high %>%
+         filter(Group=="Lipidomics-Metabolomics") %>% pull(link),
+       
+       'Shorter durability: Lipidomics & Cytokines'=df_snv_durability_low %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       'Longer durability: Lipidomics & Cytokines'=df_snv_durability_high %>%
+         filter(Group=="Lipidomics-Cytokines") %>% pull(link),
+       
+       'Shorter durability: Lipidomics & Transcriptomics'=df_snv_durability_low %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+       'Longer durability: Lipidomics & Transcriptomics'=df_snv_durability_high %>%
+         filter(Group=="Lipidomics-Others") %>% pull(link),
+       
+       'Shorter durability: Metabolomics & Cytokines'=df_snv_durability_low %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       'Longer durability: Metabolomics & Cytokines'=df_snv_durability_high %>%
+         filter(Group=="Metabolomics-Cytokines") %>% pull(link),
+       
+       'Shorter durability: Metabolomics & Transcriptomics'=df_snv_durability_low %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+       'Longer durability: Metabolomics & Transcriptomics'=df_snv_durability_high %>%
+         filter(Group=="Metabolomics-Others") %>% pull(link),
+       
+       'Shorter durability: Transcriptomics & Cytokines'=df_snv_durability_low %>%
+         filter(Group=="Others-Cytokines") %>% pull(link),
+       'Longer durability: Transcriptomics & Cytokines'=df_snv_durability_high %>%
+         filter(Group=="Others-Cytokines") %>% pull(link)
+  )
+
+pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/snv.durability.pdf",height=4,width=5)
+upset(fromList(df_durability_snv),nsets=20,keep.order = T,order.by = "freq",
+      queries = list(
+        list(query = intersects, 
+             params  = list("Shorter durability: Lipidomics & Metabolomics",
+                            "Longer durability: Lipidomics & Metabolomics"),
+             color = "orangered",active = T),
+        list(query = intersects, 
+             params  = list('Shorter durability: Metabolomics & Transcriptomics',
+                            'Longer durability: Metabolomics & Transcriptomics'),
+             color = "orangered",active = T) ,
+        list(query = intersects,
+             params  = list('Shorter durability: Metabolomics & Cytokines',
+                            'Longer durability: Metabolomics & Cytokines'),
+             color = "orangered",active = T)
+        
+      )
+)
+dev.off()
+```
+
