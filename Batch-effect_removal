@@ -1,0 +1,147 @@
+#Package require
+```{r setup include=FALSE}
+#setwd("~/Multi-omics_V2_20220922/databse")
+library(readxl)
+library(data.table)
+library(dplyr)
+library(ggpubr)
+#library(tibble)
+library(tidyverse)
+library(Biobase)
+library(BiocParallel)
+library(sva)
+library(bladderbatch)
+#library(snpStats)
+library(data.table)
+library("ggplot2")
+library("gridExtra")
+library("edgeR")
+library("UpSetR")
+library(data.table)
+library(readxl)
+library(openxlsx)
+#library(DESeq2)
+theme_shilin= theme_test() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        #legend.position = "none",
+        panel.border = element_rect(fill=NA,color="black", size=1, linetype="solid"),
+        axis.ticks.length = unit(0.1, "cm"),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+```
+#Lipidomics
+```
+pca_uncorrected_lip <- prcomp(df.lip.overall)
+pca_uncorrected_lip_value<-
+    as.data.frame(pca_uncorrected_lip[2]$rotation) %>%
+    rownames_to_column(var="rowname") %>%
+    mutate(rowname.new=substr(rowname,9,13)) %>%
+   merge(df.outcome %>%
+            mutate(rowname.new=Subject_id) %>%
+            dplyr::rename(Vaccine_type=vaccine_type) %>%
+            dplyr::select("rowname.new","batch","Vaccine_type"), by="rowname.new") %>%
+    mutate(batch=as.factor(batch)) %>%
+    dplyr::select("PC1",PC2, timepoint,batch,rowname,rowname.new,"Vaccine_type") %>%
+    column_to_rownames("rowname") %>%
+    dplyr::select(-rowname.new)
+
+validation.lip.sva<-df.lip.overall
+dim(validation.lip.sva)
+
+pheno.lip<-
+    pca_uncorrected_lip_value %>%
+    dplyr::select(batch,timepoint,Vaccine_type)
+batch = pheno.lip[colnames(validation.lip.sva),"batch"]
+modcombat = model.matrix(~1, data=as.data.frame(pheno.lip[colnames(validation.lip.sva),]))
+combat_edata_lip = ComBat(dat=as.matrix(validation.lip.sva), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+
+combat_edata_lip<-as.data.frame(combat_edata_lip)
+
+pca_corrected_lip = prcomp(combat_edata_lip)
+
+ pca_corrected_lip_value<-
+    as.data.frame(pca_corrected_lip[2]$rotation) %>%
+    rownames_to_column(var="rowname") %>%
+    mutate(timepoint=case_when(grepl("_M1",rowname) ~ "M1", TRUE ~ "M0")) %>%
+    mutate(rowname.new=substr(rowname,9,13)) %>%
+   merge(df.outcome %>%
+            mutate(rowname.new=Subject_id) %>%
+            dplyr::rename(Vaccine_type=vaccine_type) %>%
+            dplyr::select("rowname.new","batch","Vaccine_type"), by="rowname.new") %>%
+    mutate(batch=as.factor(batch)) %>%
+    dplyr::select("PC1",PC2, timepoint,batch,rowname,rowname.new,"Vaccine_type") %>%
+    column_to_rownames("rowname") %>%
+    dplyr::select(-rowname.new)
+
+cols <- c("1" = "#E6824C", "2" = "#E4C658",'3'="#7FC1C6")
+cols <- c("1" = "#E6824C", "2" = "#E4C658",'3'="#7FC1C6")
+
+ggplot(data=pca_corrected_lip_value, aes(x=PC1, y=PC2,color=batch))+
+  geom_point(size=3)+
+  stat_ellipse(type="norm", linetype=2)+
+  labs(title=" ", color="batch")+
+  scale_colour_manual(values = cols)+theme_shilin
+
+```
+#Metabolomics
+```
+pca_uncorrected_met <- prcomp(df.met.overall)
+  #pull PCA values out of the PCA object
+  pca_uncorrected_met_value<-
+    as.data.frame(pca_uncorrected_met[2]$rotation) %>% 
+    rownames_to_column(var="rowname") %>%
+    mutate(rowname.new=substr(rowname,1,5)) %>%
+    merge(df.outcome %>%
+            mutate(rowname.new=Subject_id) %>%
+            dplyr::rename(Vaccine_type=vaccine_type) %>%
+            dplyr::select("rowname.new","batch","Vaccine_type"), by="rowname.new") %>%
+    mutate(batch=as.factor(batch)) %>%
+    dplyr::select("PC1",PC2, timepoint,batch,rowname,rowname.new,"Vaccine_type") %>%
+    column_to_rownames("rowname") %>%
+    dplyr::select(-rowname.new)
+ 
+  validation.met.sva<-df.met.overall.1 %>% as.matrix()
+  
+ 
+  pheno.met<-
+    pca_uncorrected_met_value %>%
+    dplyr::select(batch,timepoint,Vaccine_type)
+  batch = pheno.met[colnames(validation.met.sva),"batch"]
+  modcombat = model.matrix(~1, data=as.data.frame(pheno.met[colnames(validation.met.sva),]))
+  covar_mat<- pca_uncorrected_met_value $Vaccine_type
+
+  combat_edata_met = ComBat(dat=as.matrix(validation.met.sva), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+  combat_edata_met<-
+    as.data.frame(combat_edata_met) 
+  pca_corrected_met <- prcomp(combat_edata_met)
+ 
+  pca_corrected_met_value<-
+    as.data.frame(pca_corrected_met[2]$rotation) %>% 
+    rownames_to_column(var="rowname") %>%
+    mutate(rowname.new=substr(rowname,1,5)) %>%
+    merge(df.outcome %>%
+            mutate(rowname.new=Subject_id) %>%
+            dplyr::rename(Vaccine_type=vaccine_type) %>%
+            dplyr::select("rowname.new","batch","Vaccine_type"), by="rowname.new") %>%
+    #mutate(batch=case_when(batch=="2" ~ "1_2", TRUE~ "3")) %>%
+    mutate(batch=as.factor(batch)) %>%
+    dplyr::select("PC1",PC2, timepoint,batch,rowname,rowname.new,"Vaccine_type") %>%
+    column_to_rownames("rowname") %>%
+    dplyr::select(-rowname.new)
+  
+ggplot(data=pca_corrected_met_value, aes(x=PC1, y=PC2,color=batch)) + 
+    geom_point(size=3) + 
+  stat_ellipse(type="norm", linetype=2)+ 
+  labs(title=" ",  color="batch") +
+  scale_colour_manual(values = cols)+theme_shilin
+```
+
+
+
+
+
+
+
+
