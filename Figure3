@@ -1,0 +1,242 @@
+#Scatter plot for Cellular response
+```{r}
+gsea_overall<-
+  read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/Figure2A_Longitudinal_ggsva_pathway_overall.xlsx") %>%
+  filter(group=="BNT162b2: Baseline vs. 1m pv."|group=="CoronaVac: Baseline vs. 1m pv.") %>%
+  mutate(group=factor(group,levels=c("BNT162b2: Baseline vs. 1m pv.",
+                                     "CoronaVac: Baseline vs. 1m pv."),
+                      labels=c("BNT162b2","CoronaVac"))) %>%
+  filter(TERM=="cellular process") %>%
+  mutate(TERM="Cellular Process")
+names(gsea_overall)
+library(forcats)
+common_ID<-intersect(gsea_overall %>% filter(group=="BNT162b2") %>% pull(Description),
+          gsea_overall %>% filter(group=="CoronaVac") %>% pull(Description))
+gsea_overall_new<-
+  gsea_overall %>%
+  mutate(overlap = case_when(
+    Description %in% common_ID ~ TRUE,
+    TRUE ~ FALSE
+  )) %>%
+  arrange(overlap, group, desc(NES)) %>%
+  mutate(Description = fct_inorder(Description))
+names(gsea_overall_new)
+# 绘制图形
+p1<-ggplot(gsea_overall_new %>% filter(overlap=="TRUE"), aes(x = group, y = Description)) +
+  geom_point(aes(fill = NES, size = log10(p.adjust)), shape = 21) +
+  scale_size() +
+  scale_fill_gradient2(low = "#5281B9", mid = "#FFFDC1", high = "#D73729", midpoint = 0) +
+  #facet_wrap(~overlap, dir = "h", scales = "free_y", strip.position = "top") +
+  theme_minimal() +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold", size = 10, hjust = 0.5),
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(size = 10,face = "bold", angle = 90, vjust = 1, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8),
+    panel.spacing = unit(0.1, "lines"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "white", colour = NA),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  ) +
+  labs(fill = "NES", size = "-log10(FDR)", x = "", y = "")
+
+gsea_overall_new_non_overlap<-gsea_overall_new %>% filter(overlap=="FALSE")
+df_top <- gsea_overall_new_non_overlap %>%
+  arrange(desc(abs(NES))) %>%
+  top_n(30, abs(NES))
+
+p2<-ggplot(df_top , aes(x = group, y = Description)) +
+  geom_point(aes(fill = NES, size = log10(p.adjust)), shape = 21) +
+  scale_size() +
+  scale_fill_gradient2(low = "#5281B9", mid = "#FFFDC1", high = "#D73729", midpoint = 0) +
+  #facet_wrap(~overlap, dir = "h", scales = "free_y", strip.position = "top") +
+  theme_minimal() +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold", size = 10, hjust = 0.5),
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(size = 10,face = "bold", angle = 90, vjust = 1, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8),
+    panel.spacing = unit(0.1, "lines"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "white", colour = NA),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  ) +
+  labs(fill = "NES", size = "-log10(FDR)", x = "", y = "")
+
+library(patchwork)
+p1+p2
+ggsave("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V2_20240302/Figure3_Scatter_plot_Cellular_Process.pdf",height = 8,width=15)
+
+intersect(gsea_overall %>% filter(group=="BNT162b2: Baseline vs. 1m pv.") %>% pull(ID),
+          gsea_overall %>% filter(group=="CoronaVac: Baseline vs. 1m pv.") %>% pull(ID))
+```
+#Scatter Plot for Nervous system
+```{r}
+gsea_overall<-
+ read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_neuro.xlsx",sheet="BNT_M1_vs_M0") %>%
+  mutate(group="BNT_M1") %>%
+ bind_rows(read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_neuro.xlsx",sheet="SNV_M1_vs_M0")  %>%
+  mutate(group="SNV_M1")) %>% 
+  # bind_rows( gsea.immune.gene.long.new.final[["BNT_M6_vs_M0"]]) %>%
+  # mutate(group="BNT_M6") %>%
+  # bind_rows( gsea.immune.gene.long.new.final[["SNV_M6_vs_M0"]]) %>%
+  # mutate(group="SNV_M6") %>%
+  mutate(group=factor(group,levels=c("BNT_M1","SNV_M1"),labels=c("BNT162b2",
+                                                                 "CoronaVac")))
+names(gsea_overall)
+library(forcats)
+intersect(gsea_overall %>% filter(group=="BNT162b2") %>% pull(ID),
+         gsea_overall %>% filter(group=="CoronaVac") %>% pull(ID))
+gsea_overall_new<-
+gsea_overall %>%
+  mutate(overlap = case_when(
+    ID %in% c("Cell-Junction Assembly", 
+              "Myeloid Leukocyte Differentiation") ~ TRUE,
+    TRUE ~ FALSE
+  )) %>%
+  arrange(overlap, group, desc(NES)) %>%
+  mutate(ID = fct_inorder(ID))
+
+# 绘制图形
+ggplot(gsea_overall_new %>% filter(group=="BNT162b2"), aes(x = group, y = ID)) +
+  geom_col(aes(fill = NES, size = log10(p.adjust))) +
+  scale_size() +
+  scale_fill_gradient2(low = "#5281B9", mid = "#FFFDC1", high = "#D73729", midpoint = 0) +
+ # facet_wrap(~Group, dir = "h", scales = "free_y", strip.position = "top") +
+  theme_minimal() +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold", size = 10, hjust = 0.5),
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(size = 10,face = "bold", angle = 90, vjust = 1, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8),
+    panel.spacing = unit(0.1, "lines"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "white", colour = NA),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  ) +
+  labs(fill = "NES", size = "-log10(FDR)", x = "", y = "")
+
+
+ggsave("~/Desktop/test1.pdf",height = 7,width=13)
+
+intersect(gsea_overall %>% filter(group=="BNT162b2: Baseline vs. 1m pv.") %>% pull(ID),
+          gsea_overall %>% filter(group=="CoronaVac: Baseline vs. 1m pv.") %>% pull(ID))
+
+```
+#Scatter Plot for Immune systerm based on BTM analyses
+```{r}
+gsea_overall<-
+ read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_BTM.xlsx",sheet="BNT_M1_vs_M0") %>%
+  mutate(group="BNT_M1") %>%
+ bind_rows(read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_BTM.xlsx",sheet="SNV_M1_vs_M0")  %>%
+  mutate(group="SNV_M1")) %>% filter(Group!="TBA") %>% filter(Group!="Cellular Processes & Development") %>%
+  # bind_rows( gsea.immune.gene.long.new.final[["BNT_M6_vs_M0"]]) %>%
+  # mutate(group="BNT_M6") %>%
+  # bind_rows( gsea.immune.gene.long.new.final[["SNV_M6_vs_M0"]]) %>%
+  # mutate(group="SNV_M6") %>%
+  mutate(group=factor(group,levels=c("BNT_M1","SNV_M1"),labels=c("BNT162b2",
+                                                                 "CoronaVac"))) %>%
+  mutate(Group=factor(Group,levels = c("Innate Immunity", "Adaptive Immunity", "Antiviral Response"),labels= c("Innate Immunity", "Adaptive Immunity", "Antiviral Response")))
+names(gsea_overall)
+library(forcats)
+# intersect(gsea_overall %>% filter(group=="BNT162b2: Baseline vs. 1m pv.") %>% pull(ID),
+#          gsea_overall %>% filter(group=="CoronaVac: Baseline vs. 1m pv.") %>% pull(ID))
+gsea_overall_new<-
+gsea_overall %>%
+  mutate(overlap = case_when(
+    ID %in% c("mitotic cell cycle in stimulated CD4 T cells (M4.5)", 
+              "DC surface signature (S5)", 
+              "extracellular matrix, complement (M140)") ~ TRUE,
+    TRUE ~ FALSE
+  )) %>%
+  arrange(Group, overlap, group, desc(NES)) %>%
+  mutate(ID = fct_inorder(ID))
+
+# 绘制图形
+ggplot(gsea_overall_new, aes(x = group, y = ID)) +
+  geom_point(aes(fill = NES, size = log10(p.adjust)), shape = 21) +
+  scale_size() +
+  scale_fill_gradient2(low = "#5281B9", mid = "#FFFDC1", high = "#D73729", midpoint = 0) +
+  facet_wrap(~Group, dir = "h", scales = "free_y", strip.position = "top") +
+  theme_minimal() +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold", size = 10, hjust = 0.5),
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(size = 10,face = "bold", angle = 90, vjust = 1, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8),
+    panel.spacing = unit(0.1, "lines"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "white", colour = NA),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  ) +
+  labs(fill = "NES", size = "-log10(FDR)", x = "", y = "")
+
+
+ggsave("~/btm.pdf",height = 7,width=13)
+
+```
+#Barplot for Nervous system
+```{r}
+Neural_Pathways= read.xlsx("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Pathway_analyses/ssGSEA/Annotation_Pathways.xlsx") %>%
+  filter(BNT_Neuro==1) %>%
+  pull("BNT_Pathways") 
+
+Neural_Pathways<-gsub("_"," ",Neural_Pathways)
+gsea_overall<-
+  read.xlsx("~/Longitudinal_ggsva_pathway_overall.xlsx") %>%
+  filter(group=="BNT162b2: Baseline vs. 1m pv."|group=="CoronaVac: Baseline vs. 1m pv.") %>%
+  mutate(group=factor(group,levels=c("BNT162b2: Baseline vs. 1m pv.",
+                                     "CoronaVac: Baseline vs. 1m pv."),
+                      labels=c("BNT162b2","CoronaVac"))) %>%
+  filter(Description %in% Neural_Pathways) 
+
+names(gsea_overall)
+
+egmt_ensemble_bnt<-
+  readRDS("~/goGSEA_ensemble_BNT.rds") %>% 
+  filter(Description %in% Neural_Pathways)
+
+gsea_overall<-egmt_ensemble_bnt@result
+
+sample_label <- c(
+  `suppressed` = 'Suppression',
+  `activated` = 'Activation'
+)
+library(clusterProfiler)
+dotplot(egmt_ensemble_bnt,x="Count", showCategory=30, split=c(".sign"),color="p.adjust",label_format=65) + 
+  facet_grid(~.sign,scales = "free_y", space = "free_y", labeller = as_labeller(sample_label))+ # Flip coordinates for horizontal layout
+  #theme_minimal() +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold", size = 10, hjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10, angle = 90, vjust = 1, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    panel.spacing = unit(0.1, "lines"),
+    #panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "white", colour = NA),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  )
+
+ggsave("~/Scatter_plot_Neural_function.pdf",height = 9,width=9)
+
+```
