@@ -1,7 +1,7 @@
 #Scatter plot for Cellular response
 ```{r}
 gsea_overall<-
-  read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/Figure2A_Longitudinal_ggsva_pathway_overall.xlsx") %>%
+  read.xlsx("~/Longitudinal_ggsva_pathway_overall.xlsx") %>%
   filter(group=="BNT162b2: Baseline vs. 1m pv."|group=="CoronaVac: Baseline vs. 1m pv.") %>%
   mutate(group=factor(group,levels=c("BNT162b2: Baseline vs. 1m pv.",
                                      "CoronaVac: Baseline vs. 1m pv."),
@@ -73,22 +73,16 @@ p2<-ggplot(df_top , aes(x = group, y = Description)) +
 
 library(patchwork)
 p1+p2
-ggsave("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V2_20240302/Figure3_Scatter_plot_Cellular_Process.pdf",height = 8,width=15)
+ggsave("~/Scatter_plot_Cellular_Process.pdf",height = 8,width=15)
 
-intersect(gsea_overall %>% filter(group=="BNT162b2: Baseline vs. 1m pv.") %>% pull(ID),
-          gsea_overall %>% filter(group=="CoronaVac: Baseline vs. 1m pv.") %>% pull(ID))
 ```
 #Scatter Plot for Nervous system
 ```{r}
 gsea_overall<-
- read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_neuro.xlsx",sheet="BNT_M1_vs_M0") %>%
+ read.xlsx("~/gseaResult_list_neuro.xlsx",sheet="BNT_M1_vs_M0") %>%
   mutate(group="BNT_M1") %>%
- bind_rows(read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_neuro.xlsx",sheet="SNV_M1_vs_M0")  %>%
+ bind_rows(read.xlsx("~/gseaResult_list_neuro.xlsx",sheet="SNV_M1_vs_M0")  %>%
   mutate(group="SNV_M1")) %>% 
-  # bind_rows( gsea.immune.gene.long.new.final[["BNT_M6_vs_M0"]]) %>%
-  # mutate(group="BNT_M6") %>%
-  # bind_rows( gsea.immune.gene.long.new.final[["SNV_M6_vs_M0"]]) %>%
-  # mutate(group="SNV_M6") %>%
   mutate(group=factor(group,levels=c("BNT_M1","SNV_M1"),labels=c("BNT162b2",
                                                                  "CoronaVac")))
 names(gsea_overall)
@@ -128,31 +122,23 @@ ggplot(gsea_overall_new %>% filter(group=="BNT162b2"), aes(x = group, y = ID)) +
   ) +
   labs(fill = "NES", size = "-log10(FDR)", x = "", y = "")
 
-
-ggsave("~/Desktop/test1.pdf",height = 7,width=13)
-
-intersect(gsea_overall %>% filter(group=="BNT162b2: Baseline vs. 1m pv.") %>% pull(ID),
-          gsea_overall %>% filter(group=="CoronaVac: Baseline vs. 1m pv.") %>% pull(ID))
+ggsave("~/cellular.process.pdf",height = 7,width=13)
 
 ```
+
 #Scatter Plot for Immune systerm based on BTM analyses
 ```{r}
 gsea_overall<-
- read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_BTM.xlsx",sheet="BNT_M1_vs_M0") %>%
+ read.xlsx("~/gseaResult_list_BTM.xlsx",sheet="BNT_M1_vs_M0") %>%
   mutate(group="BNT_M1") %>%
- bind_rows(read.xlsx("~/OneDrive - The Chinese University of Hong Kong/Multi-Omics/Figure_V1_20231130/Source data/gseaResult_list_BTM.xlsx",sheet="SNV_M1_vs_M0")  %>%
+ bind_rows(read.xlsx("~/gseaResult_list_BTM.xlsx",sheet="SNV_M1_vs_M0")  %>%
   mutate(group="SNV_M1")) %>% filter(Group!="TBA") %>% filter(Group!="Cellular Processes & Development") %>%
-  # bind_rows( gsea.immune.gene.long.new.final[["BNT_M6_vs_M0"]]) %>%
-  # mutate(group="BNT_M6") %>%
-  # bind_rows( gsea.immune.gene.long.new.final[["SNV_M6_vs_M0"]]) %>%
-  # mutate(group="SNV_M6") %>%
   mutate(group=factor(group,levels=c("BNT_M1","SNV_M1"),labels=c("BNT162b2",
                                                                  "CoronaVac"))) %>%
   mutate(Group=factor(Group,levels = c("Innate Immunity", "Adaptive Immunity", "Antiviral Response"),labels= c("Innate Immunity", "Adaptive Immunity", "Antiviral Response")))
 names(gsea_overall)
 library(forcats)
-# intersect(gsea_overall %>% filter(group=="BNT162b2: Baseline vs. 1m pv.") %>% pull(ID),
-#          gsea_overall %>% filter(group=="CoronaVac: Baseline vs. 1m pv.") %>% pull(ID))
+
 gsea_overall_new<-
 gsea_overall %>%
   mutate(overlap = case_when(
@@ -164,7 +150,7 @@ gsea_overall %>%
   arrange(Group, overlap, group, desc(NES)) %>%
   mutate(ID = fct_inorder(ID))
 
-# 绘制图形
+
 ggplot(gsea_overall_new, aes(x = group, y = ID)) +
   geom_point(aes(fill = NES, size = log10(p.adjust)), shape = 21) +
   scale_size() +
@@ -193,9 +179,7 @@ ggsave("~/btm.pdf",height = 7,width=13)
 ```
 #Barplot for Nervous system
 ```{r}
-Neural_Pathways= read.xlsx("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Pathway_analyses/ssGSEA/Annotation_Pathways.xlsx") %>%
-  filter(BNT_Neuro==1) %>%
-  pull("BNT_Pathways") 
+Neural_Pathways= read.xlsx("~/Annotation_Pathways.xlsx") 
 
 Neural_Pathways<-gsub("_"," ",Neural_Pathways)
 gsea_overall<-
