@@ -30,9 +30,9 @@ library(ggrepel)
 ```
 #Load data
 ```{r}
-load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/1_cleaned_data/df_omics.RData")
+load("~/df_omics.RData")
 
-df_outcome <- read_excel("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/database/df.outcome.xlsx")
+df_outcome <- read_excel("~/df.outcome.xlsx")
 
 ```
 #Omics in BNT
@@ -94,7 +94,7 @@ for (vaccine_group in c("B", "S")) {
     dt_w %>%
     merge(df_lip_overall_raw %>% dplyr::rename(Marker_new=LipidIon) %>% dplyr::select(Class,Marker_new),by="Marker_new")
  
-  file_name <- paste("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Differential_analysis_paired/Lipidomics/LMM_", vaccine_group, ".xlsx", sep = "")
+  file_name <- paste("~/Differential_analysis_paired/Lipidomics/LMM_", vaccine_group, ".xlsx", sep = "")
    write.xlsx(dt_w, file = file_name)
 }
 
@@ -152,7 +152,7 @@ for (vaccine_group in c("B", "S")) {
 
   
  
-  file_name <- paste("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Differential_analysis_paired/Metabolomics/LMM_", vaccine_group, ".xlsx", sep = "")
+  file_name <- paste("~/Differential_analysis_paired/Metabolomics/LMM_", vaccine_group, ".xlsx", sep = "")
   write.xlsx(dt_w, file = file_name)
 }
 ```
@@ -211,7 +211,7 @@ for (vaccine_types in c("BNT","SNV")){
    
     
     write.table(res.current.df, 
-                paste0('~/Projects/Multi_omics/Results/2_Differential_analysis/Raw_data/M1_M0_Limma_Adjust_M6_M0_', vaccine_types,'.txt'), 
+                paste0('~/M1_M0_Limma_Adjust_M6_M0_', vaccine_types,'.txt'), 
                 col.names = NA, sep = '\t', quote = FALSE)
 }
 
