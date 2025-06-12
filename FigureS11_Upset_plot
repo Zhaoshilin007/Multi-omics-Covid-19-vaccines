@@ -10,35 +10,35 @@ library(UpSetR)
 library(openxlsx)
 
 df_bnt_immunogenecity_low<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_0_immunogenecity.xlsx") %>%
+  read.xlsx("/correlation.B_M1_0_immunogenecity.xlsx") %>%
   mutate(link=paste0(Source,"_",	target))
 
 df_bnt_immunogenecity_high<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_1_immunogenecity.xlsx")%>%
+  read.xlsx("/correlation.B_M1_1_immunogenecity.xlsx")%>%
   mutate(link=paste0(Source,"_",	target))
 
 df_snv_immunogenecity_low<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_0_immunogenecity.xlsx")%>%
+  read.xlsx("/correlation.S_M1_0_immunogenecity.xlsx")%>%
   mutate(link=paste0(Source,"_",	target))
 
 df_snv_immunogenecity_high<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_1_immunogenecity.xlsx")%>%
+  read.xlsx("/correlation.S_M1_1_immunogenecity.xlsx")%>%
   mutate(link=paste0(Source,"_",	target))
 
 df_bnt_durability_high<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_0_durability.xlsx")%>%
+  read.xlsx("/correlation.B_M1_0_durability.xlsx")%>%
   mutate(link=paste0(Source,"_",	target))
 
 df_bnt_durability_low<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.B_M1_1_durability.xlsx")%>%
+  read.xlsx("/correlation.B_M1_1_durability.xlsx")%>%
   mutate(link=paste0(Source,"_",	target))
 
 df_snv_durability_high<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_0_durability.xlsx")%>%
+  read.xlsx("/correlation.S_M1_0_durability.xlsx")%>%
   mutate(link=paste0(Source,"_",	target))
 
 df_snv_durability_low<-
-  read.xlsx("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/correlation.S_M1_1_durability.xlsx")%>%
+  read.xlsx("/correlation.S_M1_1_durability.xlsx")%>%
   mutate(link=paste0(Source,"_",	target))
 
 
@@ -78,7 +78,7 @@ df_immunogenecity_bnt<-
         filter(Group=="Others-Cytokines") %>% pull(link)
        )
 
-pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/bnt.immunogenecity.pdf",height=4,width=5)
+pdf("/bnt.immunogenecity.pdf",height=4,width=5)
 
 upset(fromList(df_immunogenecity_bnt),nsets=12,keep.order = T,order.by = "freq",
             queries = list(
@@ -135,7 +135,7 @@ df_immunogenecity_snv<-
          filter(Group=="Others-Cytokines") %>% pull(link)
   )
 
-pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/snv.dimmunogenecity.pdf",height=4,width=5)
+pdf("/snv.dimmunogenecity.pdf",height=4,width=5)
 upset(fromList(df_immunogenecity_snv),nsets=12,keep.order = T,order.by = "freq",
       queries = list(
         list(query = intersects, 
@@ -190,7 +190,7 @@ df_durability_bnt<-
          filter(Group=="Others-Cytokines") %>% pull(link)
   )
 
-pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/bnt.durability.pdf",height=4,width=5)
+pdf("/bnt.durability.pdf",height=4,width=5)
 
 upset(fromList(df_durability_bnt),nsets=12,keep.order = T,order.by = "freq",
       queries = list(
@@ -241,7 +241,7 @@ df_durability_snv<-
          filter(Group=="Others-Cytokines") %>% pull(link)
   )
 
-pdf("/Users/shilinzhao/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Multi-Omics/DE_markers/upset_plot/snv.durability.pdf",height=4,width=5)
+pdf("/snv.durability.pdf",height=4,width=5)
 upset(fromList(df_durability_snv),nsets=20,keep.order = T,order.by = "freq",
       queries = list(
         list(query = intersects, 
