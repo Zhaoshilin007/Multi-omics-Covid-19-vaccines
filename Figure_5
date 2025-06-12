@@ -8,9 +8,9 @@ library(Hmisc)
 library(openxlsx)
 
 #load database
-load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/1_cleaned_data/df_meta.RData")
-load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/1_cleaned_data/Batch effect correction/Omics.RData")
-load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Differential_analysis_paired/Differen_Marker.RData")
+load("~/df_meta.RData")
+load("~/Omics.RData")
+load("~/Differen_Marker.RData")
 
   # Extract column names starting with "ENSG"
   col_names <- names(all_data_bnt_omics %>% select(starts_with("ENSG")))
@@ -54,7 +54,7 @@ load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Mul
     filter(match=="Keep") 
   ALL_final$FDR <- p.adjust(ALL_final$p, method ="BH")
   
-  #View(ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.4))
+  
   ALL_final_new<-
     ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.3)
   
@@ -130,7 +130,7 @@ load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Mul
     ALL %>%
     filter(match=="Keep")
   ALL_final$FDR <- p.adjust(ALL_final$p, method ="BH")
-  #View(ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.4))
+
   ALL_final_new<-
     ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.3)
   ALL_final_new<-
