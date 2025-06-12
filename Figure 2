@@ -1,0 +1,36 @@
+test<-
+  read.table("~/Differential_analysis_paired/count_summary.txt") %>%
+  mutate(row_group=paste0(Omic,Regulation)) %>%
+  mutate(row_group=factor(row_group,levels=c( "LipidomicsDown" ,   "LipidomicsUp" , "MetabolomicsDown" ,  "MetabolomicsUp"  ,"TranscriptomicDown","TranscriptomicUp"),
+                          labels=c( "Downregulated (L)" ,   "Upregulated (L)" ,  "Downregulated (M)" ,   "Upregulated (M)" , "Downregulated (T)" ,   "Upregulated (T)" ))) %>%
+  mutate(month=factor(month,levels=c("BNT_M0_M1", "BNT_M0_M6", "SNV_M0_M1", "SNV_M0_M6"),labels=c("BNT162b2: Baseline vs. 1m pv.",
+                                                                                                  "BNT162b2: Baseline vs. 6m pv.",
+                                                                                                  "CoronaVac: Baseline vs. 1m pv.",
+                                                                                                  "CoronaVac: Baseline vs. 6m pv.")))
+names(test) #[1] "month"      "Omic"       "Regulation" "count" ,row_group 
+cols=c(Transcriptomic="#E6824C",
+          Metabolomics="#E4C658",
+          Lipidomics="#7FC1C6")
+shape=c(Up=2,Down=6)
+
+ggplot(test, aes(month,row_group)) +
+  geom_point(aes(fill = Omic, size = count), color = "black", shape = 21) +
+  scale_size()+
+  scale_fill_manual(values = cols)+  # Adjust if needed
+  theme_minimal() +  # Start with a minimal theme
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "white", colour = NA),
+        panel.border = element_rect(colour = "black", fill = NA, size = 0.5))+
+  theme(plot.margin = margin(1, 1, 1, 1, "cm"),
+        axis.text.x = element_text(size = 8, angle = 45, vjust = 1, hjust = 1,face="bold"),
+        axis.text.y = element_text(size = 8,face = "bold"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 8,face = "bold"),
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.key.size = unit(0.3, 'cm'),
+        panel.grid.major = element_blank(),  # Remove major grid lines
+        panel.grid.minor = element_blank(),  # Remove minor grid lines
+        panel.background = element_rect(fill = "white", colour = NA)) +  # White background
+  labs(fill = "Omics", size = "Count", x = "",y="")
+ggsave("~/scatter.plot.pdf",width=5,height=5)
