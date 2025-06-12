@@ -1,0 +1,88 @@
+p.current<-list()
+for(omics in (c("Lipidomics","Metabolomics"，"RNA"))){
+  for(vaccine_group in c("S","B")){
+    for (group in c(".durability",".immunogenecity")){
+      
+      if(omics =="Lipidomics"){
+        df_current<-
+          read.xlsx(paste0("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Differential_analysis_paired/",omics,"/df_", vaccine_group, group,".xlsx")) %>%
+          mutate(p_ad_cat = case_when(pval < 0.05 ~ "Significant", TRUE ~ "Not significant")) %>%
+          mutate(sig = case_when(Estimate >0 & pval < 0.05 ~ "Up",
+                                 Estimate <0 & pval < 0.05 ~ 'Down',
+                                 TRUE ~ "Not significant")) %>%
+          mutate(Markers=Marker_new)
+      } else {
+        df_current<-
+          read.xlsx(paste0("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Differential_analysis_paired/",omics,"/df_", vaccine_group, group,".xlsx")) %>%
+          mutate(p_ad_cat = case_when(pval < 0.05 ~ "Significant", TRUE ~ "Not significant")) %>%
+          mutate(sig = case_when(Estimate >0 & pval < 0.05 ~ "Up",
+                                 Estimate <0 & pval < 0.05 ~ 'Down',
+                                 TRUE ~ "Not significant")) %>%
+          mutate(Markers=Metabolites)
+      }
+     
+      
+    
+      counts <- summary(as.factor(df_current$sig)) %>% as.data.frame()
+      names(counts)<-"Count"
+      counts$label=rownames(counts)
+      counts<-counts[-2,]
+      
+      counts <- summary(as.factor(df_current$sig))
+      labels <- data.frame(
+        sig = names(counts)[c(1,3)],
+        count = as.numeric(counts)[c(1,3)],
+        x = c(0.5, 0.5),  
+        y = c(3, 3.5)  
+      ) %>%
+        filter(sig !="Not significant")
+      
+      
+      # Subset for significant genes
+      df_current_select <- subset(df_current, sig %in% c('Up', 'Down'))
+      df_current_select$feature <- rownames(df_current_select)
+      current<-paste0(vaccine_group, "_", omics,"_",group)
+      # Create volcano plot
+      p.current[[current]] <- ggplot(data = df_current, aes(x = Estimate, y = -log10(pval), color = sig)) +
+        labs(colour = "Direction") +
+        geom_point(size = 2.5) +
+        scale_color_manual(values = c('#D8404D', '#CCCDCB', '#6485B5'), limits = c('Up', 'Not significant', 'Down')) +
+        theme(plot.title = element_text(hjust = 0.5, size = 14), panel.grid = element_blank(),
+              panel.background = element_rect(color = 'black', fill = 'transparent'), 
+              legend.key = element_rect(fill = 'transparent')) +
+        geom_vline(xintercept = 0, lty = 3, color = 'black') +
+        geom_hline(yintercept = -log10(0.05), lty = 3, color = 'black') +
+        geom_text_repel(data = bind_rows(
+          df_current_select %>% 
+            filter(sig == 'Up') %>% 
+            arrange(pval,desc(abs(Estimate))) %>% 
+            head(5),
+          df_current_select %>% 
+            filter(sig == 'Down') %>% 
+            arrange(pval,desc(abs(Estimate))) %>% 
+            head(5)
+        ), # Add labels last to appear as the top layer
+        aes(label = Markers),
+        #family = "Times New Roman",
+        box.padding = 0.5,
+        size =3,
+        max.overlaps = getOption("ggrepel.max.overlaps", 200))+
+        guides(color = guide_legend(override.aes = list(size = 3))) +
+        ggtitle(paste0("Altered",omics,"  in ", group, " (", vaccine_group, ")")) +
+        labs(#x = expression("-Log"[2] * " (Fold Change)"),
+             y = expression("-Log"[10] * " (Adjusted P Value)")) +
+        theme(plot.title = element_text(hjust = 0.5, size = 14), 
+              panel.grid = element_blank(),
+              legend.position = "top",
+              panel.background = element_rect(color = 'black', fill = 'transparent'),
+              legend.key = element_rect(fill = 'transparent')) +
+        scale_y_continuous(limits = c(0,4)) +
+        geom_text(data = labels, aes(x = x, y = y, label = paste(sig, "(", count, ")", sep = "")), 
+                  color = "black", size = 4, vjust = -1) 
+      
+      p.current[[current]]
+      ggsave(paste0('~/',current , '.pdf'),width=4,height=4)
+      
+    }
+  }
+}
