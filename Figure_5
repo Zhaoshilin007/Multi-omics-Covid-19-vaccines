@@ -1,0 +1,161 @@
+##This scrip was generated for the correlation analyses for baseline markers cross talk.
+#require the packages
+library(tidyverse)
+library(igraph)
+library(ggraph)
+library(reshape2)
+library(Hmisc)
+library(openxlsx)
+
+#load database
+load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/1_cleaned_data/df_meta.RData")
+load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/1_cleaned_data/Batch effect correction/Omics.RData")
+load("~/Library/CloudStorage/OneDrive-TheChineseUniversityofHongKong/Project/Multi-omics/Results/3_differential_results/Differential_analysis_paired/Differen_Marker.RData")
+
+  # Extract column names starting with "ENSG"
+  col_names <- names(all_data_bnt_omics %>% select(starts_with("ENSG")))
+  # Update the names
+  new_col_names <- ifelse(grepl("__NA__NA", col_names), 
+                          gsub("\\..*", "", col_names),
+                          gsub("__", "", str_extract(col_names, "__(.*?)__")))
+  
+  # Apply the new names to the original data
+  names(all_data_bnt_omics)[names(all_data_bnt_omics) %in% col_names] <- new_col_names
+  
+  ##Use triangel
+  library(psych)
+  library(Hmisc)#加载包
+  res2 <- rcorr(as.matrix(all_data_bnt_omics),type = "spearman")
+  res2
+  
+  data_corr_ALL <- 
+    as.data.frame(res2$r) 
+  data_p_ALL <- as.data.frame(res2$P)
+  
+  flattenCorrMatrix <- function(cormat, pmat) {
+    ut <- upper.tri(cormat) 
+    data.frame( row = rownames(cormat)[row(cormat)[ut]], 
+                column = rownames(cormat)[col(cormat)[ut]], 
+                cor =(cormat)[ut], p = pmat[ut] )
+  }
+  
+  ALL<-flattenCorrMatrix(data_corr_ALL, data_p_ALL)
+  ALL$row.class<-ifelse(ALL$row %in% c(names(df_sig.cytokine.bnt),names(df_sig.inflammation.bnt),names(df_sig.chemokine.bnt)),"Cytokines",
+                        ifelse(ALL$row %in% names(df_sig.lip.bnt),"Lipidomics",
+                               ifelse(ALL$row %in% names(df_sig.meta.bnt),"Metabolomics",
+                                      ifelse(ALL$row %in% names(df_sig.rna.bnt),"Gene","Others"))))
+  ALL$column.class<-ifelse(ALL$column %in% c(names(df_sig.cytokine.bnt),names(df_sig.inflammation.bnt),names(df_sig.chemokine.bnt)),"Cytokines",
+                           ifelse(ALL$column %in% names(df_sig.lip.bnt),"Lipidomics",
+                                  ifelse(ALL$column %in% names(df_sig.meta.bnt),"Metabolomics",
+                                         ifelse(ALL$column %in% names(df_sig.rna.bnt),"Gene","Others"))))
+  ALL$match<-ifelse(ALL$row.class==ALL$column.class,"Delete","Keep")
+  ALL_final<-
+    ALL %>%
+    filter(match=="Keep") 
+  ALL_final$FDR <- p.adjust(ALL_final$p, method ="BH")
+  
+  #View(ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.4))
+  ALL_final_new<-
+    ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.3)
+  
+  ALL_final_new<-
+    ALL_final_new %>%
+    as.tibble() %>%
+    group_by(row) %>% 
+    mutate(count_row = n()) %>%
+    group_by(column) %>% 
+    mutate(column_row = n())
+  write.xlsx(ALL_final_new,"~/correlation.BNT.xlsx")
+  ##Generate the node file
+  node.bnt.m0<-
+    data.frame(id=c(names(df_sig.lip.bnt)[-c(1:2)],
+                    names(df_sig.meta.bnt)[-c(1:3)],
+                    names(df_sig.rna.bnt),
+                    names(df_sig.cytokine.bnt),
+                    names(df_sig.chemokine.bnt),
+                    names(df_sig.inflammation.bnt)),
+               Class=c(rep("Lipidomics",length(names(df_sig.lip.bnt)[-c(1:2)])),
+                       rep("Metabolomics",length(names(df_sig.meta.bnt)[-c(1:3)])),
+                       rep("Gene",length(names(df_sig.rna.bnt))),
+                       rep("Cytokine",length(names(df_sig.cytokine.bnt))),
+                       rep("Chemokine",length(names(df_sig.chemokine.bnt))),
+                       rep("Inflammatary cytokine",length(names(df_sig.inflammation.bnt)))))
+  
+  write.xlsx(node.bnt.m0,"~/Node.BNT.xlsx")
+  
+  gene_marker<-
+    ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.3)
+  unique(gene_marker$row[grepl("ENSG",gene_marker$row)])
+  
+  
+  # Extract column names starting with "ENSG"
+  col_names <- names(all_data_snv_omics %>% select(starts_with("ENSG")))
+  # Update the names
+  new_col_names <- ifelse(grepl("__NA__NA", col_names), 
+                          gsub("\\..*", "", col_names),
+                          gsub("__", "", str_extract(col_names, "__(.*?)__")))
+  
+  # Apply the new names to the original data
+  names(all_data_snv_omics)[names(all_data_snv_omics) %in% col_names] <- new_col_names
+  
+  ##Use triangel
+  library(psych)
+  library(Hmisc)
+  res2 <- rcorr(as.matrix(all_data_snv_omics),type = "spearman")
+  res2
+  
+  data_corr_ALL <- 
+    as.data.frame(res2$r) 
+  data_p_ALL <- as.data.frame(res2$P)
+  
+  flattenCorrMatrix <- function(cormat, pmat) {
+    ut <- upper.tri(cormat) 
+    data.frame( row = rownames(cormat)[row(cormat)[ut]], 
+                column = rownames(cormat)[col(cormat)[ut]], 
+                cor =(cormat)[ut], p = pmat[ut] )
+  }
+  
+  ALL<-flattenCorrMatrix(data_corr_ALL, data_p_ALL)
+  ALL$row.class<-ifelse(ALL$row %in% c(names(df_sig.cytokine.snv),names(df_sig.inflammation.snv),names(df_sig.chemokine.snv)),"Cytokines",
+                        ifelse(ALL$row %in% names(df_sig.lip.snv),"Lipidomics",
+                               ifelse(ALL$row %in% names(df_sig.meta.snv),"Metabolomics",
+                                      ifelse(ALL$row %in% names(df_sig.rna.snv),"Gene","Others"))))
+  ALL$column.class<-ifelse(ALL$column %in% c(names(df_sig.cytokine.snv),names(df_sig.inflammation.snv),names(df_sig.chemokine.snv)),"Cytokines",
+                           ifelse(ALL$column %in% names(df_sig.lip.snv),"Lipidomics",
+                                  ifelse(ALL$column %in% names(df_sig.meta.snv),"Metabolomics",
+                                         ifelse(ALL$column %in% names(df_sig.rna.snv),"Gene","Others"))))
+  ALL$match<-ifelse(ALL$row.class==ALL$column.class,"Delete","Keep")
+  
+  ALL_final<-
+    ALL %>%
+    filter(match=="Keep")
+  ALL_final$FDR <- p.adjust(ALL_final$p, method ="BH")
+  #View(ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.4))
+  ALL_final_new<-
+    ALL_final %>% filter(FDR<0.05) %>% filter(abs(cor)>=0.3)
+  ALL_final_new<-
+    ALL_final_new %>%
+    as.tibble() %>%
+    group_by(row) %>% 
+    mutate(count_row = n()) %>%
+    group_by(column) %>% 
+    mutate(column_row = n())
+  
+  write.xlsx(ALL_final_new,"~/correlation.snv.xlsx")
+  dim(ALL_final_new)
+  node.snv.m0<-
+    data.frame(id=c(names(df_sig.lip.snv)[-c(1:2)],
+                    names(df_sig.meta.snv)[-c(1:3)],
+                    names(df_sig.rna.snv),
+                    names(df_sig.cytokine.snv),
+                    names(df_sig.chemokine.snv),
+                    names(df_sig.inflammation.snv)),
+               Class=c(rep("Lipidomics",length(names(df_sig.lip.snv)[-c(1:2)])),
+                       rep("Metabolomics",length(names(df_sig.meta.snv)[-c(1:3)])),
+                       rep("Gene",length(names(df_sig.rna.snv))),
+                       rep("Cytokine",length(names(df_sig.cytokine.snv))),
+                       rep("Chemokine",length(names(df_sig.chemokine.snv))),
+                       rep("Inflammatary cytokine",length(names(df_sig.inflammation.snv)))))
+  
+  write.xlsx(node.snv.m0,"~/Node.SNV.xlsx")
+}
