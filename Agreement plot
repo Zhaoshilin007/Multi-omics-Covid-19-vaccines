@@ -1,0 +1,49 @@
+library(gtools)
+library(pls)
+library(sgof)
+library(data.table)
+library(dplyr)
+library(ggpubr)
+library(tibble)
+library(tidyverse)
+library(Biobase)
+library(BiocParallel)
+library(sva)
+library(data.table)
+library("ggplot2")
+library("gridExtra")
+library("edgeR")
+library("UpSetR")
+library(data.table)
+library(openxlsx)
+library(ggrepel)
+
+
+
+df_de_rna<-
+  res_bnt_M1_M0 %>%
+  merge(res_snv_M1_M0,by=0) %>%
+  mutate(significance=case_when(BNT_M1_M0_direction!="None"&BNT_M1_M0_padj<0.05 & SNV_M1_M0_direction!="None" & SNV_M1_M0_padj<0.05 ~ "Sig. DEs in Both Groups",
+                                BNT_M1_M0_padj<0.05 & BNT_M1_M0_direction!="None" ~ "Sig. DEs in BNT162b2",
+                                SNV_M1_M0_padj<0.05 & SNV_M1_M0_direction!="None" ~ "Sig. DEs in CoronaVac",
+                                TRUE ~ "No sig.")) %>%
+  filter(significance!="No sig.")
+df_de_rna$significance<-factor(df_de_rna$significance,
+                               labels=c("Sig. DEs in BNT162b2","Sig. DEs in CoronaVac","Sig. DEs in Both Groups"),
+                               levels=c("Sig. DEs in BNT162b2","Sig. DEs in CoronaVac","Sig. DEs in Both Groups"))
+
+library(ggplot2)
+ggplot(df_de_rna,aes(x=BNT_M1_M0_log2FoldChange,y=SNV_M1_M0_log2FoldChange)) +
+  geom_point(aes(colour=significance), size=2, alpha=0.9)+ 
+  scale_colour_manual(values=c("#d65d0f","#64b4e5","#e7bb7c"))+ #,"#98c395"
+  theme_bw()+theme(axis.line = element_line(colour = "black"),
+                   panel.grid.major = element_blank(),
+                   panel.grid.minor = element_blank(),
+                   panel.background = element_blank(),
+                   legend.position = "top",
+                   panel.border = element_rect(fill= "transparent"))+ 
+  labs(colour = "DE groups",
+       x = "log2FC in BNT162b2", 
+       y = "log2FC in CoronaVac")+
+  geom_hline(yintercept = c(log2(1.5),-log2(1.5)), linetype = "dashed", colour = "grey") +
+  geom_vline(xintercept = c(log2(1.5),-log2(1.5)), linetype = "dashed", colour = "grey")
