@@ -1,7 +1,7 @@
 # Multi-omics-Covid-19-vaccines
 Multi-omics &amp; Covid-19 vaccines
 
-Figure 2. A wider range of features are regulated after BNT162b2 than CoronaVac.  
+Figure 2. A wider range of features are regulated after BNT162b2 than CoronaVac.  The code was in Differential analysis over time.Rmd file.
 
 Figure 3. BNT162b2 is associated with heightened adaptive immunity and decreased neural functions and CoronaVac with heightened innate immunity. 
 
