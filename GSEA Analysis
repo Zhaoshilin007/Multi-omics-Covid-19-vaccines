@@ -1,0 +1,53 @@
+library(readxl)
+library(stringr)
+gseaResult_list_BTM<-list()
+for (sheet_name in c("BNT_M1_vs_M0","SNV_M1_vs_M0","BNT_M6_vs_M0","SNV_M6_vs_M0")){
+Current_df_diff <- read_excel("~/DEGs_timepoints.xlsx", 
+    sheet = sheet_name )
+
+    #extract ENSEMBL ID
+    Current_df_diff<-
+      Current_df_diff %>%
+      mutate(ID=str_extract(ID, "[^.]+")) %>%
+      dplyr::rename(ENSEMBL=ID)
+
+library(clusterProfiler)
+library(org.Hs.eg.db)
+#library(EnrichmentBrowser)
+library(GO.db)
+
+
+geneSymbols <- mapIds(org.Hs.eg.db,
+                      keys = Current_df_diff$ENSEMBL,
+                      column = "SYMBOL",
+                      keytype = "ENSEMBL",
+                      multiVals = "first")
+
+geneListUpdated <- Current_df_diff$log2FoldChange
+names(geneListUpdated) <- geneSymbols
+
+geneListUpdated <- 
+  geneListUpdated[!is.na(names(geneListUpdated))]
+
+library(clusterProfiler)
+geneSets<-BTM_gene_list
+geneListSorted <- sort(geneListUpdated, decreasing = TRUE)
+
+
+gseaResult <- GSEA(geneList = geneListSorted, 
+                   TERM2GENE = geneSets, 
+                   minGSSize = 5,    
+                   maxGSSize = 500,   
+                   pAdjustMethod = "BH",
+                   pvalueCutoff = 0.05,
+                   verbose = FALSE)  
+
+
+gseaResult_list_BTM[[sheet_name]]<-as.data.frame(summary(gseaResult))}
+
+
+
+
+
+
+
